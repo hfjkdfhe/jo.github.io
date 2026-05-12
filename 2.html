@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>trivago 旅遊網自動化電子商務互動網站</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: "Noto Sans TC", "Microsoft JhengHei", Arial, sans-serif;
+      background: #f4f8fb;
+      color: #1f2937;
+      line-height: 1.7;
+    }
+    header {
+      background: linear-gradient(135deg, #0077c8, #00a6d6, #ffb703);
+      color: white;
+      padding: 76px 20px 58px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    header::before, header::after {
+      content: "";
+      position: absolute;
+      border-radius: 999px;
+      background: rgba(255,255,255,.18);
+      animation: float 7s ease-in-out infinite;
+    }
+    header::before { width: 220px; height: 220px; left: -80px; top: 40px; }
+    header::after { width: 300px; height: 300px; right: -110px; bottom: -80px; animation-delay: 1.2s; }
+    @keyframes float {
+      0%,100% { transform: translateY(0); }
+      50% { transform: translateY(-18px); }
+    }
+    header .inner { position: relative; z-index: 1; }
+    .badge {
+      display: inline-block;
+      background: rgba(255,255,255,.22);
+      border: 1px solid rgba(255,255,255,.42);
+      padding: 8px 18px;
+      border-radius: 999px;
+      font-size: 14px;
+      margin-bottom: 18px;
+    }
+    h1 { font-size: clamp(32px, 5vw, 58px); margin-bottom: 18px; letter-spacing: 1px; }
+    header p { max-width: 870px; margin: 0 auto 28px; font-size: 18px; opacity: .96; }
+    .hero-buttons, .actions { display: flex; justify-content: center; gap: 14px; flex-wrap: wrap; }
+    .btn, button.btn {
+      display: inline-block;
+      padding: 13px 24px;
+      border-radius: 999px;
+      text-decoration: none;
+      font-weight: 800;
+      transition: .25s ease;
+      border: 0;
+      cursor: pointer;
+      font-size: 15px;
+    }
+    .btn-primary { background: #fff; color: #0077c8; }
+    .btn-secondary { background: rgba(255,255,255,.15); color: white; border: 1px solid rgba(255,255,255,.55); }
+    .btn-blue { background: #0077c8; color: white; }
+    .btn-gold { background: #ffb703; color: #1f2937; }
+    .btn:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(0,0,0,.18); }
+    nav {
+      position: sticky; top: 0; z-index: 20;
+      background: rgba(255,255,255,.94);
+      backdrop-filter: blur(12px);
+      box-shadow: 0 3px 18px rgba(15,23,42,.08);
+      padding: 12px 20px;
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+    nav a { color: #0f6ca8; text-decoration: none; font-weight: 800; margin-right: 20px; font-size: 15px; }
+    nav a.active { color: #f59e0b; }
+    .container { width: min(1180px, 92%); margin: 0 auto; }
+    section { padding: 64px 0; }
+    .section-title { margin-bottom: 28px; }
+    .section-title span { color: #0077c8; font-weight: 900; font-size: 14px; letter-spacing: 1px; }
+    .section-title h2 { font-size: clamp(26px, 4vw, 40px); margin-top: 8px; color: #0f172a; }
+    .section-title p { max-width: 780px; margin-top: 10px; color: #64748b; }
+    .grid { display: grid; gap: 22px; }
+    .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .grid-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .card {
+      background: white;
+      border-radius: 24px;
+      padding: 26px;
+      box-shadow: 0 14px 40px rgba(15,23,42,.08);
+      border: 1px solid #e5edf5;
+    }
+    .card h3 { color: #0f172a; margin-bottom: 10px; font-size: 22px; }
+    .card p, .card li { color: #526173; }
+    ul { list-style: none; padding-left: 0; }
+    li { margin-bottom: 8px; }
+    .check li::before { content: "✓"; color: #008f7a; font-weight: 900; margin-right: 8px; }
+    .pain li::before {
+      content: "!"; display: inline-flex; align-items: center; justify-content: center;
+      width: 20px; height: 20px; margin-right: 8px; border-radius: 50%;
+      background: #ffedd5; color: #ea580c; font-size: 12px; font-weight: 900;
+    }
+    table { width: 100%; border-collapse: collapse; overflow: hidden; border-radius: 18px; background: white; box-shadow: 0 14px 40px rgba(15,23,42,.06); }
+    th, td { padding: 16px; border-bottom: 1px solid #e5edf5; text-align: left; vertical-align: top; }
+    th { background: #0077c8; color: white; font-weight: 900; }
+    tr:last-child td { border-bottom: none; }
+    .flow { display: grid; grid-template-columns: repeat(6, 1fr); gap: 14px; margin-top: 22px; }
+    .flow-step {
+      background: white; border-radius: 20px; padding: 20px 14px; text-align: center;
+      border: 2px solid #dbeafe; position: relative; font-weight: 900; color: #0f6ca8;
+      min-height: 105px; display: flex; align-items: center; justify-content: center; cursor: pointer;
+      transition: .25s ease;
+    }
+    .flow-step:hover, .flow-step.selected { transform: translateY(-4px); border-color: #ffb703; background: #fff7ed; }
+    .flow-step:not(:last-child)::after {
+      content: "→"; position: absolute; right: -16px; top: 50%; transform: translateY(-50%);
+      color: #f59e0b; font-size: 24px; z-index: 2;
+    }
+    .result-box {
+      margin-top: 20px; background: #0f172a; color: #e5e7eb; border-radius: 22px; padding: 22px;
+      box-shadow: 0 14px 40px rgba(15,23,42,.16);
+    }
+    .result-box strong { color: #ffb703; }
+    .highlight { background: linear-gradient(135deg, #e0f2fe, #fff7ed); border: 1px solid #bfdbfe; }
+    .filters { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
+    .filter-btn {
+      border: 1px solid #bfdbfe; background: white; color: #0f6ca8; padding: 10px 16px;
+      border-radius: 999px; cursor: pointer; font-weight: 900;
+    }
+    .filter-btn.active { background: #0077c8; color: white; }
+    .lead-page { background: white; border-radius: 30px; overflow: hidden; box-shadow: 0 18px 50px rgba(15,23,42,.1); border: 1px solid #e5edf5; }
+    .lead-hero { background: linear-gradient(135deg, #0f6ca8, #12b3d6); color: white; padding: 46px 28px; text-align: center; }
+    .lead-hero h3 { font-size: clamp(28px, 4vw, 46px); margin-bottom: 10px; }
+    .lead-content { padding: 32px; display: grid; grid-template-columns: 1.2fr .8fr; gap: 28px; align-items: start; }
+    .form-box { background: #f8fafc; padding: 24px; border-radius: 22px; border: 1px solid #e2e8f0; }
+    label { display: block; font-weight: 800; margin-bottom: 6px; color: #334155; }
+    input, select, textarea {
+      width: 100%; padding: 13px 14px; border-radius: 12px; border: 1px solid #cbd5e1;
+      margin-bottom: 14px; font-size: 15px; font-family: inherit;
+    }
+    textarea { min-height: 120px; resize: vertical; }
+    button.full { width: 100%; border: none; padding: 14px; border-radius: 999px; background: #ffb703; color: #1f2937; font-weight: 900; font-size: 16px; cursor: pointer; }
+    .notice { display: none; margin-top: 14px; padding: 14px; border-radius: 14px; background: #dcfce7; color: #166534; font-weight: 800; }
+    .sales-card { position: relative; overflow: hidden; }
+    .sales-card::before { content: ""; position: absolute; width: 120px; height: 120px; right: -40px; top: -40px; background: rgba(0,119,200,.12); border-radius: 50%; }
+    .tag { display: inline-block; background: #e0f2fe; color: #0369a1; font-weight: 900; padding: 6px 12px; border-radius: 999px; font-size: 13px; margin-bottom: 12px; }
+    .tabs { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
+    .tab-btn { border: 0; background: #e0f2fe; color: #0369a1; padding: 11px 18px; border-radius: 999px; cursor: pointer; font-weight: 900; }
+    .tab-btn.active { background: #0077c8; color: white; }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+    .email-box, .ad-box {
+      background: #0f172a; color: #e5e7eb; border-radius: 22px; padding: 24px; white-space: pre-line;
+      box-shadow: 0 14px 40px rgba(15,23,42,.16); position: relative;
+    }
+    .email-box strong, .ad-box strong { color: #ffb703; }
+    .copy-btn { position: absolute; right: 16px; top: 16px; background: white; color: #0f172a; border: 0; border-radius: 999px; padding: 7px 12px; font-weight: 900; cursor: pointer; }
+    .timeline { display: grid; gap: 16px; }
+    .timeline-item { display: grid; grid-template-columns: 130px 1fr; gap: 18px; align-items: start; background: white; border-radius: 20px; padding: 20px; border: 1px solid #e5edf5; }
+    .timeline-item .week { background: #0077c8; color: white; border-radius: 999px; text-align: center; padding: 8px 12px; font-weight: 900; }
+    .calculator { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; align-items: end; }
+    .calc-result { font-size: 26px; font-weight: 900; color: #0077c8; }
+    footer { background: #0f172a; color: #cbd5e1; text-align: center; padding: 34px 20px; }
+    footer strong { color: #ffb703; }
+    @media (max-width: 980px) {
+      .grid-2, .grid-3, .grid-4, .lead-content, .calculator { grid-template-columns: 1fr; }
+      .flow { grid-template-columns: 1fr; }
+      .flow-step:not(:last-child)::after { content: "↓"; right: 50%; top: auto; bottom: -24px; transform: translateX(50%); }
+      .timeline-item { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="inner">
+      <div class="badge">互動版｜GitHub Pages 可直接上架</div>
+      <h1>trivago 旅遊網自動化銷售漏斗</h1>
+      <p>以旅遊住宿比價為核心，打造「免費內容 → 名單蒐集 → 自動回信 → 銷售頁 → 聯盟導購」的互動式創業網站。</p>
+      <div class="hero-buttons">
+        <a href="#flow" class="btn btn-primary">查看互動流程</a>
+        <a href="#lead" class="btn btn-secondary">體驗名單頁</a>
+      </div>
+    </div>
+  </header>
+
+  <nav id="nav">
+    <a href="#flow">流程</a>
+    <a href="#ta">TA分析</a>
+    <a href="#gift">免費贈品</a>
+    <a href="#lead">名單頁</a>
+    <a href="#email">自動信</a>
+    <a href="#sales">銷售頁</a>
+    <a href="#ads">廣告</a>
+    <a href="#calc">成效計算</a>
+    <a href="#upload">上架</a>
+  </nav>
+
+  <main>
+    <section id="flow">
+      <div class="container">
+        <div class="section-title">
+          <span>INTERACTIVE FLOW</span>
+          <h2>完整自動化電子商務流程</h2>
+          <p>點擊每一個流程節點，可以查看該階段的目的與操作重點。</p>
+        </div>
+        <div class="flow">
+          <div class="flow-step selected" data-flow="用 IG、TikTok、FB 或 Google 搜尋廣告吸引對日本旅遊、住宿、花火大會有興趣的人。">廣告引流</div>
+          <div class="flow-step" data-flow="用免費 Ebook 或影片吸引用戶留下 Email / LINE，建立後續溝通管道。">名單蒐集頁</div>
+          <div class="flow-step" data-flow="提供日本住宿懶人包、trivago 比價教學、花火住宿攻略，提升信任感。">免費贈品</div>
+          <div class="flow-step" data-flow="自動寄送下載連結、訂房技巧、住宿推薦頁，逐步引導使用者點擊。">Email 自動化</div>
+          <div class="flow-step" data-flow="依照不同需求設計東京住宿、大阪住宿、花火住宿三種銷售頁。">銷售頁</div>
+          <div class="flow-step" data-flow="使用者點擊 CTA 進入 trivago 或聯盟平台，完成訂房後產生導購收益。">trivago 導購</div>
+        </div>
+        <div class="result-box" id="flowResult"><strong>目前階段：</strong>用 IG、TikTok、FB 或 Google 搜尋廣告吸引對日本旅遊、住宿、花火大會有興趣的人。</div>
+      </div>
+    </section>
+
+    <section id="ta">
+      <div class="container">
+        <div class="section-title">
+          <span>01 TARGET AUDIENCE</span>
+          <h2>TA 分析互動篩選</h2>
+          <p>選擇不同客群，快速查看對應痛點與內容策略。</p>
+        </div>
+        <div class="filters">
+          <button class="filter-btn active" data-filter="all">全部</button>
+          <button class="filter-btn" data-filter="free">自由行族</button>
+          <button class="filter-btn" data-filter="hanabi">花火攝影族</button>
+          <button class="filter-btn" data-filter="couple">情侶旅遊族</button>
+          <button class="filter-btn" data-filter="student">小資學生族</button>
+          <button class="filter-btn" data-filter="lazy">懶人旅遊族</button>
+        </div>
+        <div class="grid grid-3" id="taCards">
+          <div class="card ta-card" data-type="free"><h3>日本自由行族</h3><p>痛點：不知道住哪最方便。<br>策略：東京、大阪、京都住宿區域懶人包。</p></div>
+          <div class="card ta-card" data-type="hanabi"><h3>花火攝影族</h3><p>痛點：花火期間房價高、住宿難搶。<br>策略：長岡、柏崎、赤川花火住宿專頁。</p></div>
+          <div class="card ta-card" data-type="couple"><h3>情侶旅遊族</h3><p>痛點：想找有質感但不太貴的住宿。<br>策略：景觀房、交通方便、拍照感飯店推薦。</p></div>
+          <div class="card ta-card" data-type="student"><h3>小資學生族</h3><p>痛點：預算有限、怕訂貴。<br>策略：高CP值住宿清單與比價教學。</p></div>
+          <div class="card ta-card" data-type="lazy"><h3>懶人旅遊族</h3><p>痛點：不想花時間查資料。<br>策略：排行榜、快速比較表、直接預訂連結。</p></div>
+          <div class="card ta-card" data-type="hanabi"><h3>攝影旅遊族</h3><p>痛點：住宿位置會影響拍攝與交通。<br>策略：攝影點＋住宿區域＋交通動線整合。</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="gift">
+      <div class="container">
+        <div class="section-title">
+          <span>02 LEAD MAGNET</span>
+          <h2>免費贈品設計</h2>
+        </div>
+        <div class="grid grid-2">
+          <div class="card highlight">
+            <h3>免費 Ebook：《日本自由行住宿懶人包》</h3>
+            <ul class="check"><li>東京住宿區域分析</li><li>大阪高CP值飯店推薦</li><li>日本花火住宿攻略</li><li>trivago 比價技巧</li><li>避免踩雷 5 技巧</li></ul>
+          </div>
+          <div class="card">
+            <h3>免費影片：3分鐘找便宜飯店</h3>
+            <ul class="check"><li>示範如何搜尋</li><li>比較不同平台價格</li><li>避開高價時段</li><li>看評價與地點</li><li>最後導向銷售頁</li></ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="lead">
+      <div class="container">
+        <div class="section-title">
+          <span>03 LANDING PAGE</span>
+          <h2>互動式名單蒐集頁</h2>
+          <p>此表單為前端互動展示版，正式上架可串接 MailerLite、Brevo 或 Google Forms。</p>
+        </div>
+        <div class="lead-page">
+          <div class="lead-hero">
+            <h3>免費取得日本住宿省錢攻略</h3>
+            <p>教你用 trivago 找到高CP值住宿，第一次去日本也能快速避開地雷飯店。</p>
+          </div>
+          <div class="lead-content">
+            <div>
+              <h3>你是否也遇過這些問題？</h3>
+              <ul class="pain"><li>飯店價格太高，不知道怎麼比價</li><li>不知道東京、大阪、京都該住哪一區</li><li>怕訂到交通不方便或評價很差的住宿</li><li>花很多時間查資料，最後還是不知道怎麼選</li></ul>
+              <br>
+              <h3>下載後你會得到：</h3>
+              <ul class="check"><li>日本住宿區域地圖</li><li>高CP值飯店推薦</li><li>花火大會住宿攻略</li><li>trivago 比價技巧</li></ul>
+            </div>
+            <div class="form-box">
+              <h3>立即免費下載</h3>
+              <p>填寫資料後，系統會顯示下載提醒。</p>
+              <form id="leadForm">
+                <label for="name">姓名</label><input type="text" id="name" placeholder="請輸入你的姓名" required>
+                <label for="emailInput">Email</label><input type="email" id="emailInput" placeholder="請輸入你的Email" required>
+                <label for="interest">最感興趣的主題</label>
+                <select id="interest"><option>東京住宿</option><option>大阪住宿</option><option>日本花火住宿</option><option>小資自由行</option></select>
+                <button class="full" type="submit">免費取得攻略</button>
+              </form>
+              <div class="notice" id="formNotice">已完成！正式上架時，這裡會自動寄送 Ebook 下載連結。</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="email">
+      <div class="container">
+        <div class="section-title"><span>04 EMAIL AUTOMATION</span><h2>自動回覆信設計</h2><p>按「複製」可直接複製信件內容。</p></div>
+        <div class="grid grid-3">
+          <div class="email-box"><button class="copy-btn">複製</button><strong>第1封：立即寄送</strong>
+主旨：你的日本住宿攻略來了！
+
+嗨！感謝你下載《日本自由行住宿懶人包》。這份攻略整理了東京住宿、大阪高CP值飯店、花火住宿技巧與 trivago 比價教學。
+
+立即下載：（放 Ebook 連結）</div>
+          <div class="email-box"><button class="copy-btn">複製</button><strong>第2封：隔1天寄送</strong>
+主旨：很多人訂日本飯店時，都犯了這個錯誤
+
+很多人訂房時，第一個看到價格就直接下訂。但其實不同平台價格可能差很多。建議先透過 trivago 比價，再決定是否下訂。</div>
+          <div class="email-box"><button class="copy-btn">複製</button><strong>第3封：導向銷售頁</strong>
+主旨：我整理好的日本住宿推薦清單
+
+這次幫你整理東京車站、大阪難波、京都與花火大會住宿區域，每間都附交通、評價、適合族群與比價連結。
+
+查看推薦：（放銷售頁連結）</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="sales">
+      <div class="container">
+        <div class="section-title"><span>05 SALES PAGE</span><h2>三種銷售頁互動切換</h2><p>點選不同類型，查看頁面定位與適合流量來源。</p></div>
+        <div class="tabs">
+          <button class="tab-btn active" data-tab="seo">SEO文章型</button>
+          <button class="tab-btn" data-tab="video">短影音導購型</button>
+          <button class="tab-btn" data-tab="hanabiSales">花火旅遊專頁</button>
+        </div>
+        <div class="card tab-panel active" id="seo">
+          <div class="tag">SEO文章型</div><h3>2026 東京高CP值住宿推薦</h3>
+          <p>適合 Google 搜尋導流，內容包含住宿區域分析、飯店優缺點、交通位置、價格比較與 CTA 按鈕。</p>
+          <ul class="check"><li>上野、新宿、池袋、淺草區域分析</li><li>每間飯店附評價與適合族群</li><li>CTA：立即查看最低價</li></ul>
+        </div>
+        <div class="card tab-panel" id="video">
+          <div class="tag">短影音導購型</div><h3>東京這間飯店居然只要 NT$1800？</h3>
+          <p>適合 TikTok、IG Reels 導流，頁面結構為影片、痛點、飯店推薦與比價按鈕。</p>
+          <ul class="check"><li>短影音開頭吸引注意</li><li>導向精簡銷售頁</li><li>CTA：點我立即比價</li></ul>
+        </div>
+        <div class="card tab-panel" id="hanabiSales">
+          <div class="tag">花火旅遊專頁</div><h3>長岡花火住宿攻略</h3>
+          <p>最適合結合花火攝影興趣，建立差異化的旅遊內容品牌。</p>
+          <ul class="check"><li>最佳住宿區域</li><li>車站交通與攝影點</li><li>建議入住日期與訂房時機</li><li>CTA：查看花火期間最低房價</li></ul>
+        </div>
+      </div>
+    </section>
+
+    <section id="ads">
+      <div class="container">
+        <div class="section-title"><span>06 TRAFFIC COPYWRITING</span><h2>廣告引流文案</h2></div>
+        <div class="grid grid-2">
+          <div class="ad-box"><button class="copy-btn">複製</button><strong>Facebook 廣告文案</strong>
+【日本自由行必看】
+
+你知道很多人訂日本飯店，其實都訂貴了嗎？
+
+我整理了一份《日本住宿省錢攻略》，教你怎麼找到高CP值飯店、怎麼用 trivago 比價、怎麼避免踩雷住宿。
+
+現在免費下載👇</div>
+          <div class="ad-box"><button class="copy-btn">複製</button><strong>IG / TikTok 短影音文案</strong>
+去東京玩，住宿居然可以省下 3000 元？
+
+這次教你怎麼用 trivago 找到便宜又高評價的飯店。
+
+留言「日本」，我把攻略傳給你！</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="calc">
+      <div class="container">
+        <div class="section-title"><span>07 PERFORMANCE</span><h2>簡易成效計算器</h2><p>輸入流量、名單轉換率與點擊率，估算每月可能導向 trivago 的點擊數。</p></div>
+        <div class="card">
+          <div class="calculator">
+            <div><label>每月流量</label><input type="number" id="traffic" value="10000"></div>
+            <div><label>名單轉換率 %</label><input type="number" id="leadRate" value="8"></div>
+            <div><label>Email點擊率 %</label><input type="number" id="clickRate" value="15"></div>
+            <div><button class="btn btn-blue" id="calcBtn">計算成效</button></div>
+          </div>
+          <p style="margin-top:18px;">預估每月名單數：<span class="calc-result" id="leadResult">800</span></p>
+          <p>預估每月導購點擊數：<span class="calc-result" id="clickResult">120</span></p>
+        </div>
+      </div>
+    </section>
+
+    <section id="upload">
+      <div class="container">
+        <div class="section-title"><span>08 LAUNCH</span><h2>GitHub Pages 上架流程</h2></div>
+        <div class="timeline">
+          <div class="timeline-item"><div class="week">Step 1</div><div>建立 GitHub Repository，例如：<b>trivago-travel-site</b>。</div></div>
+          <div class="timeline-item"><div class="week">Step 2</div><div>把本頁 HTML 存成 <b>index.html</b>，上傳到 Repository。</div></div>
+          <div class="timeline-item"><div class="week">Step 3</div><div>進入 <b>Settings → Pages</b>，選擇 <b>Deploy from a branch</b>。</div></div>
+          <div class="timeline-item"><div class="week">Step 4</div><div>Branch 選 <b>main</b>，Folder 選 <b>/root</b>，按 Save。</div></div>
+          <div class="timeline-item"><div class="week">Step 5</div><div>取得網址：<b>https://你的帳號.github.io/trivago-travel-site/</b></div></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer><p><strong>trivago 自動化旅遊電商互動網站</strong>｜免費內容 × 名單蒐集 × Email 自動化 × 銷售頁 × 聯盟導購</p></footer>
+
+  <script>
+    const flowSteps = document.querySelectorAll('.flow-step');
+    const flowResult = document.getElementById('flowResult');
+    flowSteps.forEach(step => {
+      step.addEventListener('click', () => {
+        flowSteps.forEach(s => s.classList.remove('selected'));
+        step.classList.add('selected');
+        flowResult.innerHTML = '<strong>目前階段：</strong>' + step.dataset.flow;
+      });
+    });
+
+    const filterBtns = document.querySelectorAll('.filter-btn');
+    const taCards = document.querySelectorAll('.ta-card');
+    filterBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        filterBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const filter = btn.dataset.filter;
+        taCards.forEach(card => {
+          card.style.display = (filter === 'all' || card.dataset.type === filter) ? 'block' : 'none';
+        });
+      });
+    });
+
+    document.getElementById('leadForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const name = document.getElementById('name').value.trim();
+      const interest = document.getElementById('interest').value;
+      const notice = document.getElementById('formNotice');
+      notice.textContent = name + '，你已成功登記！系統將寄出「' + interest + '」相關攻略。';
+      notice.style.display = 'block';
+    });
+
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    const panels = document.querySelectorAll('.tab-panel');
+    tabBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        tabBtns.forEach(b => b.classList.remove('active'));
+        panels.forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById(btn.dataset.tab).classList.add('active');
+      });
+    });
+
+    document.querySelectorAll('.copy-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const box = btn.parentElement.cloneNode(true);
+        box.querySelector('.copy-btn').remove();
+        const text = box.innerText.trim();
+        try {
+          await navigator.clipboard.writeText(text);
+          btn.textContent = '已複製';
+          setTimeout(() => btn.textContent = '複製', 1200);
+        } catch {
+          alert('瀏覽器不支援自動複製，請手動選取文字。');
+        }
+      });
+    });
+
+    function calculate() {
+      const traffic = Number(document.getElementById('traffic').value) || 0;
+      const leadRate = Number(document.getElementById('leadRate').value) || 0;
+      const clickRate = Number(document.getElementById('clickRate').value) || 0;
+      const leads = Math.round(traffic * leadRate / 100);
+      const clicks = Math.round(leads * clickRate / 100);
+      document.getElementById('leadResult').textContent = leads.toLocaleString();
+      document.getElementById('clickResult').textContent = clicks.toLocaleString();
+    }
+    document.getElementById('calcBtn').addEventListener('click', calculate);
+    calculate();
+
+    const navLinks = document.querySelectorAll('nav a');
+    const sections = [...document.querySelectorAll('main section')];
+    window.addEventListener('scroll', () => {
+      let current = '';
+      sections.forEach(section => {
+        if (window.scrollY >= section.offsetTop - 120) current = section.id;
+      });
+      navLinks.forEach(link => {
+        link.classList.toggle('active', link.getAttribute('href') === '#' + current);
+      });
+    });
+  </script>
+</body>
+</html>
